@@ -35,8 +35,7 @@ services:
     volumes_from:
       - nginx-proxy
     volumes:
-      - ${DATADIR:-@@DATADIR@@}/docker-gen:/etc/docker-gen:ro
-      - ${DATADIR:-@@DATADIR@@}/docker-gen/nginx.gotmpl:/etc/docker-gen/templates/nginx.gotmpl:ro
+      - ${DATADIR:-@@DATADIR@@}/nginx.gotmpl:/etc/docker-gen/templates/nginx.gotmpl:ro
       - /var/run/docker.sock:/tmp/docker.sock:ro
     depends_on:
       - nginx-proxy
