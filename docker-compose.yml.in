@@ -60,9 +60,9 @@ services:
       - docker-gen
       - nginx-proxy
     environment:
-      - NGINX_DOCKER_GEN_CONTAINER: @@PROXY_GEN_SERVICE_NAME@@
-      - NGINX_PROXY_CONTAINER: @@PROXY_WEB_SERVICE_NAME@@
-      - DEFAULT_EMAIL: @@ACME_EMAIL@@
+      NGINX_DOCKER_GEN_CONTAINER: @@PROXY_GEN_SERVICE_NAME@@
+      NGINX_PROXY_CONTAINER: @@PROXY_WEB_SERVICE_NAME@@
+      DEFAULT_EMAIL: @@ACME_EMAIL@@
 
 networks:
   default:
