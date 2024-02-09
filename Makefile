@@ -89,7 +89,7 @@ export COMPOSE_PROJECT_NAME=$(NAME)
 .PHONY: prestart
 prestart: files $(NGINX_TMPL)
 	$(DOCKER) network list | grep -q " $(PROXY_BRIDGE) " || $(DOCKER) network create $(PROXY_BRIDGE)
-	@for x in certs conf docker-gen vhost html acme; do \
+	@for x in certs conf vhost html acme; do \
 		mkdir -p $(DATADIR)/$$x; \
 	done
 
