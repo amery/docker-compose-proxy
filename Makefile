@@ -1,3 +1,4 @@
+CURL ?= curl
 DOCKER ?= docker
 DOCKER_COMPOSE ?= $(DOCKER) compose
 GIT ?= git
@@ -7,7 +8,7 @@ SHELL = /bin/sh
 
 # generated outputs
 #
-FILES = docker-compose.yml traefik.yml
+FILES = docker-compose.yml
 
 CONFIG_MK = config.mk
 GEN_MK = gen.mk
@@ -75,12 +76,22 @@ build: files
 include $(GEN_MK)
 include $(CONFIG_MK)
 
+# shortcuts
+#
+NGINX_TMPL = $(DATADIR)/nginx.gotmpl
+
+# export
+#
+export DATADIR
+export PROXY_BRIDGE
 export COMPOSE_PROJECT_NAME=$(NAME)
 
 .PHONY: prestart
-prestart: files
-	chmod 0600 acme.json
-	$(DOCKER) network list | grep -q " $(TRAEFIK_BRIDGE) " || $(DOCKER) network create $(TRAEFIK_BRIDGE)
+prestart: files $(NGINX_TMPL)
+	$(DOCKER) network list | grep -q " $(PROXY_BRIDGE) " || $(DOCKER) network create $(PROXY_BRIDGE)
+	@for x in certs conf docker-gen vhost html acme; do \
+		mkdir -p $(DATADIR)/$$x; \
+	done
 
 up: prestart
 	$(DOCKER_COMPOSE) up $(DOCKER_COMPOSE_UP_OPT)
@@ -90,7 +101,7 @@ start: prestart
 
 stop: files
 	$(DOCKER_COMPOSE) down --remove-orphans
-	$(DOCKER) network rm $(TRAEFIK_BRIDGE)
+	$(DOCKER) network rm $(PROXY_BRIDGE)
 
 restart: prestart
 	$(DOCKER_COMPOSE) restart
@@ -114,15 +125,19 @@ update:
 			cd - > /dev/null; \
 		fi; \
 	done
+	mkdir -p $(dir $(NGINX_TMPL))
+	$(CURL) -fL -o $(NGINX_TMPL) $(NGINX_TMPL_URL)
+
+$(NGINX_TMPL):
+	mkdir -p $(@D)
+	$(CURL) -fL -o $@ $(NGINX_TMPL_URL)
 
 config: files
 	$(DOCKER_COMPOSE) config | $(COLOUR_YAML)
-	$(COLOUR_YAML) traefik.yml
-	$(COLOUR_JSON) acme.json
 
 inspect:
 	$(DOCKER_COMPOSE) ps
-	for x in $(TRAEFIK_BRIDGE) $(NAME)_default; do \
+	for x in $(PROXY_BRIDGE) $(NAME)_default; do \
 		if $(DOCKER) network list | grep -q " $$x "; then \
 			$(DOCKER) network inspect -v $$x; \
 		fi; \
